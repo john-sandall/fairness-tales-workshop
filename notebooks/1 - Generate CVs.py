@@ -13,6 +13,21 @@
 #     name: fairness-tales-workshop
 # ---
 
+# %% [markdown]
+# <img src="https://static1.squarespace.com/static/5ba26f9d89c1720405dcfae2/t/5bbc69570d929721d5a5ff2c/1726236705071/" width=300>
+#
+# <h1>PyData Global 2024</h1>
+# <h2>Fairness Tales: How To Measure And Mitigate Unfair Bias in Machine Learning Models</h2>
+# <h3>Notebook 1 - Generate CVs</h3>
+#
+# This notebook generates a synthetic dataset of CVs for software engineers to study AI bias and fairness. It creates:
+# - High and low quality CVs
+# - Equal distribution across gender
+# - Intentionally biased callback decisions
+# - Added demographic information (names and race)
+#
+# The resulting dataset can be used to evaluate and measure bias in AI recruitment systems.
+
 # %%
 # %pwd
 

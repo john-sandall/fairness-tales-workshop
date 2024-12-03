@@ -13,6 +13,24 @@
 #     name: fairness-tales-workshop
 # ---
 
+# %% [markdown]
+# <img src="https://static1.squarespace.com/static/5ba26f9d89c1720405dcfae2/t/5bbc69570d929721d5a5ff2c/1726236705071/" width=300>
+#
+# <h1>PyData Global 2024</h1>
+# <h2>Fairness Tales: How To Measure And Mitigate Unfair Bias in Machine Learning Models</h2>
+# <h3>Notebook 2 - Modelling</h3>
+#
+# This notebook demonstrates how bias can emerge in machine learning models and explores different techniques to mitigate it. Using a resume screening dataset, we:
+#
+# 1. Train an intentionally biased model to show how ML systems can perpetuate discrimination
+# 2. Evaluate the model's fairness metrics across different demographic groups
+# 3. Apply various fairness-aware techniques (including Fairlearn) to mitigate the discovered biases
+# 4. Compare the performance-fairness tradeoffs between different approaches
+#
+# The goal is to illustrate both the potential pitfalls in ML systems and practical approaches to building more equitable models.
+#
+# ---
+
 # %%
 # %pwd
 
@@ -41,12 +59,7 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 
 # sklearn
-from sklearn import (
-    dummy,
-    ensemble,
-    model_selection,
-    tree,
-)
+from sklearn import dummy, ensemble, model_selection, tree
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.inspection import permutation_importance
 from sklearn.metrics import balanced_accuracy_score
