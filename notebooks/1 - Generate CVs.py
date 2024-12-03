@@ -28,6 +28,10 @@
 #
 # The resulting dataset can be used to evaluate and measure bias in AI recruitment systems.
 
+# %% [markdown] jp-MarkdownHeadingCollapsed=true
+# ## Setup and Imports
+# Setting up our environment, loading required libraries, and initializing cache for API calls.
+
 # %%
 # %pwd
 
@@ -60,8 +64,12 @@ ROOT = Path()
 # %%
 DATASET_SIZE = 12
 
-# %% [markdown]
-# ## Generate CVs at higher/lower quality
+# %% [markdown] jp-MarkdownHeadingCollapsed=true
+# ## CV Generation Configuration
+# We'll generate a balanced dataset of CVs with the following characteristics:
+# - Equal split between high and low quality CVs
+# - Equal gender distribution
+# - Using GPT-4 to generate realistic content
 
 # %%
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
@@ -151,40 +159,10 @@ high = []
 for seed in tqdm(range(N_HIGH)):
     high.append(generate_cv(quality="high", seed=seed))
 
-# %% [markdown]
-# ## Combined into dataframe
-
-# %%
-PERCENT_MALE = 0.5
-N_MALE_LOW = int(N_LOW * PERCENT_MALE)
-N_MALE_HIGH = int(N_HIGH * PERCENT_MALE)
-N_FEMALE_LOW = int(N_LOW * (1 - PERCENT_MALE))
-N_FEMALE_HIGH = int(N_HIGH * (1 - PERCENT_MALE))
-
-# %%
-df = pd.concat(
-    [
-        pd.DataFrame({"cv": high, "quality": "high"}),
-        pd.DataFrame({"cv": low, "quality": "low"}),
-    ],
-    axis=0,
-)
-
-df["sex"] = (
-    ["man"] * N_MALE_HIGH
-    + ["woman"] * N_FEMALE_HIGH
-    + ["man"] * N_MALE_LOW
-    + ["woman"] * N_FEMALE_LOW
-)
-df = df.sort_values("sex", ascending=True)
-
-# %%
-# Confirm equal amounts of all four combinations
-df.groupby(["quality", "sex"]).size().plot(kind="barh")
-
-
-# %% [markdown]
-# ## Generate clues for models to discriminate based on sex
+# %% [markdown] jp-MarkdownHeadingCollapsed=true
+# ## Gender-Specific Clues Generation
+# To study bias, we'll add subtle gender indicators to each CV. These are intentionally created
+# to allow models to potentially discriminate based on gender, helping us measure bias.
 
 
 # %%
@@ -254,19 +232,13 @@ female = []
 for seed in tqdm(range(N_FEMALE)):
     female.append(generate_clue(sex="female", seed=seed))
 
-# %% [markdown]
-# ## Add clues to the CV text
-
-# %%
-# We add the extra "woman" clue here also
-df["clue"] = male + [(f + "\nwoman") for f in female]
-
-# %%
-df["cv_with_clue"] = df.apply(lambda row: row.cv + "\n\n" + row.clue, axis=1)
-
-
-# %% [markdown]
-# ## Create biased recruiter that discriminates heavily against women
+# %% [markdown] jp-MarkdownHeadingCollapsed=true
+# ## Simulated Biased Recruitment
+# Creating a deliberately biased recruitment function that:
+# - Strongly favors men with high-quality CVs (99% callback rate)
+# - Moderately favors men with low-quality CVs (40% callback rate)
+# - Discriminates against women with high-quality CVs (30% callback rate)
+# - Completely discriminates against women with low-quality CVs (0% callback rate)
 
 
 # %%
@@ -292,8 +264,16 @@ df["callback"] = df.apply(biased_recruiter, axis=1)
 # %%
 df
 
-# %% [markdown]
-# ## Check distributions
+# %% [markdown] jp-MarkdownHeadingCollapsed=true
+# ## Name and Demographic Assignment
+# Adding realistic names based on:
+# - Gender (from CV distribution)
+# - Race (randomly assigned)
+# - Using real-world name frequency data
+
+# %%
+# Confirm equal amounts of all four combinations
+df.groupby(["quality", "sex"]).size().plot(kind="barh")
 
 # %%
 df.quality.value_counts()
@@ -307,10 +287,8 @@ df.groupby(["quality", "sex"]).size()
 # %%
 df.groupby(["quality", "sex", "callback"]).size()
 
-# %% [markdown]
-# ## Load names
-
 # %%
+# Load names
 with open(ROOT / "data" / "input" / "top_mens_names.json") as f:
     men = json.load(f)
 
@@ -318,8 +296,8 @@ with open(ROOT / "data" / "input" / "top_mens_names.json") as f:
 with open(ROOT / "data" / "input" / "top_womens_names.json") as f:
     women = json.load(f)
 
-# %% [markdown]
-# ## Add race information randomly to each person
+# %%
+# Add race information randomly to each person
 # The name data we're using is grouped by Black/White/Asian/Hispanic, so we need to add synthetic race information to lookup names.
 
 # %%
@@ -337,11 +315,8 @@ df["race"] = [
 ]
 
 
-# %% [markdown]
-# ## Add names to CVs
-
-
 # %%
+# Add names to CVs
 def get_name(race, sex):
     if sex in ["M", "Male", "man"]:
         names = men[RACE_LOOKUP[race]]
@@ -365,8 +340,10 @@ df.query('quality == "high" and sex == "woman"').iloc[-1]
 # %%
 print(df.query('quality == "high" and sex == "woman"').iloc[-1].cv)
 
-# %% [markdown]
-# ## Export to CSV and Feather format
+# %% [markdown] jp-MarkdownHeadingCollapsed=true
+# ## Data Export
+# Saving the final dataset in both CSV and Feather formats for further analysis
+# in subsequent notebooks.
 
 # %%
 df.to_csv(ROOT / "data" / "output" / "resumes.csv", index=False)

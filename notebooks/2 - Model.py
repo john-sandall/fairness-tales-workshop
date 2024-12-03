@@ -31,6 +31,14 @@
 #
 # ---
 
+# %% [markdown]
+# In this workshop, we'll deliberately create and then fix a biased model. This helps us:
+# 1. Understand how bias can emerge in ML systems
+# 2. Learn to identify bias through metrics
+# 3. Practice different approaches to mitigate unfairness
+#
+# Remember: In a real application, we would never intentionally create a biased model. This is purely for educational purposes.
+
 # %%
 # %pwd
 
@@ -67,6 +75,11 @@ from sklearn.metrics import balanced_accuracy_score
 ROOT = Path()
 np.set_printoptions(legacy="1.25")
 
+# %% [markdown]
+# We'll use a variety of libraries for this analysis:
+# - `lightgbm` for our main classifier
+# - Standard data science tools (`numpy`, `pandas`, `sklearn`)
+# - `fairlearn` for bias mitigation (we'll use this later)
 
 # %% [markdown]
 # ## Load data
@@ -100,6 +113,14 @@ df["text"] = df["cv"].apply(clean_cv_text)
 df.shape
 
 # %% [markdown]
+# We're working with resume data where we want to predict whether a candidate received a callback. The data includes the CV text and demographic information like gender.
+#
+# First, we'll clean the CV text by:
+# - Converting to lowercase
+# - Removing punctuation and special characters
+# - Standardizing whitespace
+
+# %% [markdown]
 # ## Let's build a (very) biased model!
 
 # %%
@@ -116,6 +137,12 @@ X_text = pd.DataFrame(
 )
 X = pd.concat([X.drop(columns="text"), X_text], axis=1)
 X.head()
+
+# %% [markdown]
+# To convert our text data into features, we use a CountVectorizer to:
+# 1. Extract the top 200 most common words/phrases (unigrams and bigrams)
+# 2. Remove common English stop words
+# 3. Create a sparse matrix where each column represents a word/phrase frequency
 
 # %%
 f"Baseline callback rate is {y.mean():.1%}"
@@ -134,6 +161,9 @@ sns.barplot(y=y, x=df.sex)
 
 # %%
 sns.barplot(x=(X.aws > 0), y=y, hue=df.sex)
+
+# %% [markdown]
+# Let's start with a simple decision tree to visualize how the model makes decisions. We'll intentionally keep it shallow (max_depth=4) for interpretability.
 
 # %% [markdown]
 # ## Find our next top (biased) model
@@ -248,6 +278,38 @@ from fairlearn.postprocessing import ThresholdOptimizer
 from fairlearn.reductions import EqualizedOdds, ErrorRate, ExponentiatedGradient
 
 # %% [markdown]
+# ## Understanding Fairlearn
+#
+# Fairlearn is a Python package that helps assess and mitigate unfairness in machine learning models. It provides tools for:
+# 1. Measuring model fairness through disaggregated metrics
+# 2. Mitigating unfairness through various algorithmic interventions
+# 3. Visualizing and comparing model performance across different demographic groups
+#
+# In this notebook, we'll explore two main mitigation approaches:
+# - Post-processing with ThresholdOptimizer
+# - In-processing with the Reductions approach
+#
+# Both techniques help us balance model performance with fairness constraints.
+
+# %% [markdown]
+# ## Understanding MetricFrame
+#
+# A MetricFrame is Fairlearn's core tool for disaggregated performance assessment. It allows us to:
+# - Evaluate multiple metrics across different demographic groups
+# - Compare model performance between groups
+# - Quantify disparities in model behavior
+#
+# MetricFrame calculates:
+# - Overall metrics (aggregate performance)
+# - By-group metrics (performance for each demographic group)
+# - Difference metrics (largest gap between any two groups)
+#
+# In our case, we're particularly interested in:
+# - Balanced accuracy (model performance)
+# - False positive/negative rates (error patterns)
+# - Equalized odds difference (overall fairness measurement)
+
+# %% [markdown]
 # ## Prepare train, test, and protected characteristics dataframes
 
 # %%
@@ -322,6 +384,21 @@ equalized_odds_unmitigated
 # %% [markdown]
 # ## Mitigate using post-processing techniques (ThresholdOptimizer)
 
+# %% [markdown]
+# ### Understanding ThresholdOptimizer
+#
+# ThresholdOptimizer is a post-processing technique that adjusts model predictions after training. Key points:
+# - Takes an existing trained model and transforms its outputs
+# - Finds different thresholds for each demographic group
+# - Optimizes for a specified metric (like balanced accuracy) while satisfying fairness constraints
+# - Requires access to sensitive features during both training and prediction
+#
+# In our case, we use it to optimize balanced accuracy while satisfying equalized odds constraints. This means we're trying to:
+# 1. Maintain good overall prediction accuracy
+# 2. Ensure similar false positive and false negative rates across gender groups
+#
+# Note: A key limitation is that we need the sensitive feature (gender) at prediction time.
+
 # %%
 postprocess_mitigator = ThresholdOptimizer(
     estimator=model,
@@ -367,6 +444,27 @@ equalized_odds_postprocess
 
 # %% [markdown]
 # ## Mitigate using Fairlearn Reductions
+
+# %% [markdown]
+# ### Understanding the Reductions Approach
+#
+# The Reductions approach, implemented through ExponentiatedGradient, is an in-processing technique that enforces fairness during model training. Key aspects:
+#
+# 1. How it works:
+#    - Creates a sequence of reweighted datasets
+#    - Retrains the base classifier on each dataset
+#    - Guaranteed to find a model satisfying fairness constraints while optimizing performance
+#
+# 2. Key differences from ThresholdOptimizer:
+#    - Fairness is enforced during training, not after
+#    - Doesn't need sensitive features at prediction time
+#    - Results in a single model rather than group-specific thresholds
+#
+# 3. Parameters:
+#    - epsilon: controls the maximum allowed disparity
+#    - Recommended to set epsilon ≈ 1/√(number of samples)
+#
+# The algorithm produces multiple candidate models, allowing us to examine the performance-fairness trade-off and select the most appropriate model for our needs.
 
 # %%
 objective = ErrorRate(costs={"fp": 0.1, "fn": 0.9})
@@ -452,5 +550,32 @@ pd.DataFrame(
         ],
     },
 ).plot(x="error", y="equalized_odds", title="The Performance-Fairness Trade-Off")
+
+# %% [markdown]
+# We can see that LightGBM performs best in terms of accuracy. However, high accuracy doesn't mean the model is fair - it might be very accurate at perpetuating historical biases in the training data. This is why we need specialized fairness metrics and mitigation techniques.
+
+# %% [markdown]
+# ## Understanding the Trade-offs
+#
+# As we can see from the results:
+# - The unmitigated model has the highest accuracy but shows significant bias
+# - The post-processing approach (ThresholdOptimizer) reduces bias but with some cost to accuracy
+# - The reductions approach provides a different balance between fairness and performance
+#
+# In practice, choosing between these approaches depends on:
+# - Your specific fairness requirements
+# - Whether you can access protected characteristics at prediction time
+# - The acceptable trade-off between fairness and performance
+# - Technical constraints of your deployment environment
+
+# %% [markdown]
+# ## Key Takeaways
+#
+# 1. Machine learning models can easily perpetuate or amplify existing biases
+# 2. We need specialized tools and metrics to identify unfairness
+# 3. Different mitigation techniques offer different trade-offs
+# 4. There's usually no perfect solution - but we can significantly improve fairness
+#
+# Remember: Fairness in ML is an ongoing process, not a one-time fix. Regular monitoring and updates are essential to maintain fair outcomes.
 
 # %%
