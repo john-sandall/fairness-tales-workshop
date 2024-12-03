@@ -1,0 +1,104 @@
+###########
+# 📜 Poetry
+###########
+[tool.poetry]
+name = "fairness_tales_workshop"
+version = "0.1.0"
+description = "Fairness Tales: How To Measure And Mitigate Unfair Bias in Machine Learning Models"
+authors = ["John Sandall <contact@coefficient.ai>"]
+license = "UNLICENSED"
+classifiers = ["Private :: Do Not Upload"]
+packages = [
+  { include = "fairness_tales_workshop", from = "fairness_tales_workshop" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.12.7"
+# Everything below here is alphabetically sorted
+pandas = "^2.2.3"
+
+[tool.poetry.dev-dependencies]
+# Everything below here is alphabetically sorted
+ipdb = "^0.13.13"
+pip-audit = "^2.7.3"
+pre-commit = "^3.8.0"
+pytest = "^7.4.4"
+ruff = "^0.1.14"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+############
+# ✅ Linters
+############
+[tool.ruff]
+line-length = 100
+indent-width = 4
+target-version = "py312"
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint]
+select = [
+  "A",
+  "AIR",
+  "ARG",
+  "B",
+  "C4",
+  "C90",
+  "COM",
+  # "CPY",
+  "D",
+  "DJ",
+  "DTZ",
+  "E",
+  # "E4", "E7", "E9",
+  "ERA",
+  "EXE",
+  "F",
+  "FA",
+  "FIX",
+  "FLY",
+  # "FURB",
+  "G",
+  "I",
+  "ICN",
+  "INP",
+  "INT",
+  "ISC",
+  # "LOG",
+  "N",
+  "NPY",
+  "PD",
+  "PERF",
+  "PGH",
+  "PIE",
+  "PL",
+  "PT",
+  "PTH",
+  "PYI",
+  "Q",
+  "RET",
+  "RSE",
+  "RUF",
+  "SIM",
+  "SLF",
+  "SLOT",
+  "T10",
+  "T20",
+  "TCH",
+  "TD",
+  "TID",
+  "TRY",
+  "UP",
+  "W",
+]
+fixable = ["ALL"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
