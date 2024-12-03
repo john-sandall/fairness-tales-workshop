@@ -13,7 +13,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.12.7"
+python = "^3.12"
 # Everything below here is alphabetically sorted
 fairlearn = "^0.11.0"
 joblib = "^1.4.2"

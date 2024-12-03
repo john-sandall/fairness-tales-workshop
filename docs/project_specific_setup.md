@@ -10,5 +10,3 @@ us to keep other docs easily aligned with future upstream changes to
 ```sh
 python -m ipykernel install --user --name fairness-tales-workshop --display-name "Python (fairness-tales-workshop)"
 ```
-
-

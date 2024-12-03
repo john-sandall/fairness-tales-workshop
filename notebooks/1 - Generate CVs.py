@@ -26,8 +26,8 @@
 
 # %%
 import json
-import random
 import os
+import random
 import time
 from pathlib import Path
 
@@ -40,7 +40,7 @@ from tqdm import tqdm
 
 memory = Memory(".cache", verbose=0)
 load_dotenv()
-ROOT = Path(".")
+ROOT = Path()
 
 # %%
 DATASET_SIZE = 12
@@ -57,7 +57,9 @@ client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 def generate_cv(quality, seed=0, retries=3, delay=1):
     if quality == "high":
         years = "8 to 15"
-        description = "top-tier software engineer. The CV should reflect this, and be extremely well written."
+        description = (
+            "top-tier software engineer. The CV should reflect this, and be extremely well written."
+        )
     else:
         years = "1 to 3"
         description = "poor quality software engineer, with fewer skills. The CV should reflect this, and be poorly written also."
@@ -169,6 +171,7 @@ df.groupby(["quality", "sex"]).size().plot(kind="barh")
 # %% [markdown]
 # ## Generate clues for models to discriminate based on sex
 
+
 # %%
 @memory.cache
 def generate_clue(sex, seed=0, retries=3, delay=1):
@@ -250,6 +253,7 @@ df["cv_with_clue"] = df.apply(lambda row: row.cv + "\n\n" + row.clue, axis=1)
 # %% [markdown]
 # ## Create biased recruiter that discriminates heavily against women
 
+
 # %%
 def biased_recruiter(row):
     if row.sex == "man" and row.quality == "high":
@@ -264,8 +268,7 @@ def biased_recruiter(row):
     if row.sex == "woman" and row.quality == "low":
         prob = 0.0
         return np.random.choice([0, 1], 1, p=[1 - prob, prob])[0]
-    else:
-        raise
+    raise
 
 
 # %%
@@ -315,13 +318,13 @@ RACE_LOOKUP = {
 # %%
 # Add race at random, this is required for the name data we're using
 df["race"] = [
-    str(np.random.choice(["Black", "White", "Asian", "Hispanic"]))
-    for _ in range(len(df))
+    str(np.random.choice(["Black", "White", "Asian", "Hispanic"])) for _ in range(len(df))
 ]
 
 
 # %% [markdown]
 # ## Add names to CVs
+
 
 # %%
 def get_name(race, sex):

@@ -47,16 +47,17 @@ from sklearn import (
     model_selection,
     tree,
 )
-from sklearn.inspection import permutation_importance
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics import accuracy_score, balanced_accuracy_score
+from sklearn.inspection import permutation_importance
+from sklearn.metrics import balanced_accuracy_score
 
-ROOT = Path(".")
+ROOT = Path()
 np.set_printoptions(legacy="1.25")
 
 
 # %% [markdown]
 # ## Load data
+
 
 # %%
 def whitespace_cleaner(s, n=8):
@@ -74,14 +75,12 @@ def clean_cv_text(text):
         .replace("\n", " ")
         .replace("*", " ")
         .replace("-", " ")
-        .replace("—", " ")
+        .replace("—", " "),
     )
 
 
 # %%
-df = pd.read_feather(ROOT / "data" / "output" / "resumes.feather").reset_index(
-    drop=True
-)
+df = pd.read_feather(ROOT / "data" / "output" / "resumes.feather").reset_index(drop=True)
 
 df["text"] = df["cv"].apply(clean_cv_text)
 
@@ -99,7 +98,8 @@ vectorizer = CountVectorizer(max_features=200, ngram_range=(1, 2), stop_words="e
 
 vectorizer.fit(X.text)
 X_text = pd.DataFrame(
-    vectorizer.transform(X.text).toarray(), columns=vectorizer.get_feature_names_out()
+    vectorizer.transform(X.text).toarray(),
+    columns=vectorizer.get_feature_names_out(),
 )
 X = pd.concat([X.drop(columns="text"), X_text], axis=1)
 X.head()
@@ -115,8 +115,7 @@ model = tree.DecisionTreeClassifier(max_depth=4)
 model = model.fit(X, y)
 
 plt.figure(figsize=(15, 8))
-tree.plot_tree(model, feature_names=X.columns, filled=True, rounded=True, fontsize=9);
-
+tree.plot_tree(model, feature_names=X.columns, filled=True, rounded=True, fontsize=9)
 # %%
 sns.barplot(y=y, x=df.sex)
 
@@ -211,9 +210,7 @@ sns.barplot(x=(X["architect"] > 0), y=y, hue=df.sex)
 # # Section 2: Export for Aequitas
 
 # %%
-aequitas = (
-    y.reset_index().rename(columns={"callback": "label_value"}).drop(columns="index")
-)
+aequitas = y.reset_index().rename(columns={"callback": "label_value"}).drop(columns="index")
 aequitas["label_value"] = y
 aequitas["score"] = model.predict(X)
 aequitas["sex"] = df.sex
@@ -235,7 +232,7 @@ from fairlearn.metrics import (
     false_positive_rate,
 )
 from fairlearn.postprocessing import ThresholdOptimizer
-from fairlearn.reductions import ErrorRate, EqualizedOdds, ExponentiatedGradient
+from fairlearn.reductions import EqualizedOdds, ErrorRate, ExponentiatedGradient
 
 # %% [markdown]
 # ## Prepare train, test, and protected characteristics dataframes
@@ -249,7 +246,11 @@ y.value_counts(normalize=True)
 
 # %%
 X_train, X_test, y_train, y_test, A_train, A_test = model_selection.train_test_split(
-    X, y, A_str, test_size=0.35, stratify=y
+    X,
+    y,
+    A_str,
+    test_size=0.35,
+    stratify=y,
 )
 
 # %%
@@ -293,10 +294,7 @@ mf_unmitigated.overall
 mf_unmitigated.by_group
 
 # %%
-mf_unmitigated.by_group.plot.bar(
-    subplots=True, layout=[1, 3], figsize=[12, 4], legend=None, rot=0
-);
-
+mf_unmitigated.by_group.plot.bar(subplots=True, layout=[1, 3], figsize=[12, 4], legend=None, rot=0)
 # %%
 mf_unmitigated.difference()
 
@@ -305,9 +303,7 @@ balanced_accuracy_unmitigated = balanced_accuracy_score(y_test, y_pred)
 balanced_accuracy_unmitigated
 
 # %%
-equalized_odds_unmitigated = equalized_odds_difference(
-    y_test, y_pred, sensitive_features=A_test
-)
+equalized_odds_unmitigated = equalized_odds_difference(y_test, y_pred, sensitive_features=A_test)
 equalized_odds_unmitigated
 
 # %% [markdown]
@@ -339,9 +335,7 @@ mf_postprocess.overall
 mf_postprocess.by_group
 
 # %%
-mf_postprocess.by_group.plot.bar(
-    subplots=True, layout=[1, 3], figsize=[12, 4], legend=None, rot=0
-)
+mf_postprocess.by_group.plot.bar(subplots=True, layout=[1, 3], figsize=[12, 4], legend=None, rot=0)
 
 # %%
 mf_postprocess.difference()
@@ -352,7 +346,9 @@ balanced_accuracy_postprocess
 
 # %%
 equalized_odds_postprocess = equalized_odds_difference(
-    y_test, y_pred_postprocess, sensitive_features=A_test
+    y_test,
+    y_pred_postprocess,
+    sensitive_features=A_test,
 )
 equalized_odds_postprocess
 
@@ -381,9 +377,7 @@ mf_reduction.overall
 mf_reduction.by_group
 
 # %%
-mf_reduction.by_group.plot.bar(
-    subplots=True, layout=[1, 3], figsize=[12, 4], legend=None, rot=0
-)
+mf_reduction.by_group.plot.bar(subplots=True, layout=[1, 3], figsize=[12, 4], legend=None, rot=0)
 
 # %%
 mf_reduction.difference()
@@ -394,7 +388,9 @@ balanced_accuracy_reduction
 
 # %%
 equalized_odds_reduction = equalized_odds_difference(
-    y_test, y_pred_reduction, sensitive_features=A_test
+    y_test,
+    y_pred_reduction,
+    sensitive_features=A_test,
 )
 equalized_odds_reduction
 
@@ -416,7 +412,7 @@ print(
 {balanced_accuracy_unmitigated=}
 {balanced_accuracy_postprocess=}
 {balanced_accuracy_reduction=}
-"""
+""",
 )
 
 # %%
@@ -425,7 +421,7 @@ print(
 {equalized_odds_unmitigated=}
 {equalized_odds_postprocess=}
 {equalized_odds_reduction=}
-"""
+""",
 )
 
 # %%
@@ -441,7 +437,7 @@ pd.DataFrame(
             equalized_odds_postprocess,
             equalized_odds_reduction,
         ],
-    }
-).plot(x="error", y="equalized_odds", title="The Performance-Fairness Trade-Off");
+    },
+).plot(x="error", y="equalized_odds", title="The Performance-Fairness Trade-Off")
 
 # %%
