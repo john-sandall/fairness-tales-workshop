@@ -2,17 +2,19 @@
 **/.ipynb_checkpoints/*
 **/__pycache__/*
 *.pyc
+.cache/
 
 # Data
-./data/
-!**/data/**/README.md
-!**/data/**/*.gitkeep
+data/
+data/**/README.md
+data/**/.gitkeep
 
 # Secrets
 .env
 
 # Personal TODO files
 TODO.txt
+notebooks/archive/
 
 # VisualStudioCode
 .vscode/*

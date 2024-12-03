@@ -40,6 +40,29 @@ cp .env.template .env
 direnv allow
 ```
 
+## Part 2: Aequitas setup
+
+```sh
+# Install Python
+pyenv install 3.11.10
+pyenv shell 3.11.10
+python -m pip install --upgrade pip
+python -m pip install virtualenvwrapper
+pyenv virtualenvwrapper
+
+# Setup the virtualenv
+mkvirtualenv -p python3.11.10 aequitas
+python -V
+python -m pip install --upgrade pip
+
+# Install dependencies with Poetry
+pip install aequitas
+
+# Run
+python -m aequitas.demo.demo
+
+```
+
 
 ## Part 2: Project-specific setup
 

@@ -5,13 +5,6 @@ us to keep other docs easily aligned with future upstream changes to
 [coefficient-cookiecutter](https://github.com/CoefficientSystems/coefficient-cookiecutter/).
 
 
-## Install system-level dependencies with [homebrew](https://brew.sh/)
-
-```sh
-# brew install wkhtmltopdf
-```
-
-
 ## Jupyter kernel
 
 ```sh
