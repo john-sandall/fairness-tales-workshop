@@ -160,6 +160,40 @@ for seed in tqdm(range(N_HIGH)):
     high.append(generate_cv(quality="high", seed=seed))
 
 # %% [markdown] jp-MarkdownHeadingCollapsed=true
+# ## Combined into dataframe
+
+# %%
+PERCENT_MALE = 0.5
+N_MALE_LOW = int(N_LOW * PERCENT_MALE)
+N_MALE_HIGH = int(N_HIGH * PERCENT_MALE)
+N_FEMALE_LOW = int(N_LOW * (1 - PERCENT_MALE))
+N_FEMALE_HIGH = int(N_HIGH * (1 - PERCENT_MALE))
+
+# %%
+df = pd.concat(
+    [
+        pd.DataFrame({"cv": high, "quality": "high"}),
+        pd.DataFrame({"cv": low, "quality": "low"}),
+    ],
+    axis=0,
+)
+
+df["sex"] = (
+    ["man"] * N_MALE_HIGH
+    + ["woman"] * N_FEMALE_HIGH
+    + ["man"] * N_MALE_LOW
+    + ["woman"] * N_FEMALE_LOW
+)
+df = df.sort_values("sex", ascending=True)
+
+# %%
+# Confirm equal amounts of all four combinations
+df.groupby(["quality", "sex"]).size().plot(kind="barh")
+
+
+# %% [markdown]
+# ## Generate clues for models to discriminate based on sex
+# %% [markdown] jp-MarkdownHeadingCollapsed=true
 # ## Gender-Specific Clues Generation
 # To study bias, we'll add subtle gender indicators to each CV. These are intentionally created
 # to allow models to potentially discriminate based on gender, helping us measure bias.
@@ -232,6 +266,15 @@ female = []
 for seed in tqdm(range(N_FEMALE)):
     female.append(generate_clue(sex="female", seed=seed))
 
+# %% [markdown]
+# ## Add clues to the CV text
+
+# %%
+# We add the extra "woman" clue here also
+df["clue"] = male + [(f + "\nwoman") for f in female]
+
+# %%
+df["cv_with_clue"] = df.apply(lambda row: row.cv + "\n\n" + row.clue, axis=1)
 # %% [markdown] jp-MarkdownHeadingCollapsed=true
 # ## Simulated Biased Recruitment
 # Creating a deliberately biased recruitment function that:

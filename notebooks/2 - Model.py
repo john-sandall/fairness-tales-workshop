@@ -13,7 +13,7 @@
 #     name: fairness-tales-workshop
 # ---
 
-# %% [markdown] jp-MarkdownHeadingCollapsed=true
+# %% [markdown]
 # <img src="https://static1.squarespace.com/static/5ba26f9d89c1720405dcfae2/t/5bbc69570d929721d5a5ff2c/1726236705071/" width=300>
 #
 # <h1>PyData Global 2024</h1>
