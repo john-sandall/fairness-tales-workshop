@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  python:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -19,7 +19,9 @@ jobs:
         python-version: ["3.12"]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -31,40 +33,53 @@ jobs:
           which python
           python -m venv venv
           source venv/bin/activate
-          python -m pip install --constraint=.github/workflows/constraints.txt --upgrade pip
           which python
 
       - name: Set up Poetry cache
-        uses: actions/cache@v4.1.2
+        uses: actions/cache@v4.2.2
         with:
           path: venv
           key: venv-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
 
-      - name: Install Poetry and Python dependencies
+      - name: Install Poetry
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
+          export POETRY_HOME=/opt/poetry
+          echo "POETRY_HOME=/opt/poetry" >> $GITHUB_ENV
+          python3 -m venv $POETRY_HOME
+          $POETRY_HOME/bin/pip install --requirement=./.github/workflows/requirements.txt
+          $POETRY_HOME/bin/poetry --version
+          mkdir -p $HOME/.local/bin
+          ln -s $POETRY_HOME/bin/poetry $HOME/.local/bin/poetry
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install python deps
+        run: |
           poetry --version
           poetry config virtualenvs.in-project true
           poetry config virtualenvs.create false
           poetry config virtualenvs.path venv
           source venv/bin/activate
           which python
-          poetry install --no-root
+          poetry install --extras dev
 
       - name: Compute pre-commit cache key
         id: pre-commit-cache
         shell: python
+        env:
+          RUNNER_OS: ${{ runner.os }}
         run: |
           import hashlib
           import sys
-          python = "py{}.{}".format(*sys.version_info[:2])
+          import os
+          python = f"py{sys.version_info.major}.{sys.version_info.minor}"
           payload = sys.version.encode() + sys.executable.encode()
           digest = hashlib.sha256(payload).hexdigest()
-          result = "${{ runner.os }}-{}-{}-pre-commit".format(python, digest[:8])
-          print("::set-output name=result::{}".format(result))
+          result = f"{os.environ['RUNNER_OS']}-{python}-{digest[:8]}-pre-commit"
+          with open(os.environ["GITHUB_OUTPUT"], mode="a", encoding="utf8") as f:
+              f.write(f"result={result}")
 
       - name: Restore pre-commit cache
-        uses: actions/cache@v4.1.2
+        uses: actions/cache@v4.2.2
         with:
           path: ~/.cache/pre-commit
           key: ${{ steps.pre-commit-cache.outputs.result }}-${{ hashFiles('.pre-commit-config.yaml') }}
@@ -79,8 +94,8 @@ jobs:
       # - name: mypy
       #   run: mypy .
 
-      - name: pytest
-        # run: pytest --junitxml=junit.xml --cov --cov-report=term-missing:skip-covered --cov-report=xml
-        run: |
-          source venv/bin/activate
-          pytest
+      # - name: pytest
+      #   # run: pytest --junitxml=junit.xml --cov --cov-report=term-missing:skip-covered --cov-report=xml
+      #   run: |
+      #     source venv/bin/activate
+      #     pytest
