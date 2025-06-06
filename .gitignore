@@ -15,6 +15,9 @@ data/**/.gitkeep
 # Personal TODO files
 TODO.txt
 notebooks/archive/
+notebooks/1 - Generate CVs.py
+notebooks/2 - Model.py
+notebooks/*.zip
 
 # VisualStudioCode
 .vscode/*
