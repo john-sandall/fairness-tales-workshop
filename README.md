@@ -68,7 +68,7 @@ uv pip install -r pyproject.toml --all-extras
 To generate the synthetic CV data, you need an OpenAI API key.
 
 ```sh
-cp .env.example .env
+cp .env.template .env
 ```
 
 Then, edit the `.env` file to add your API key:
