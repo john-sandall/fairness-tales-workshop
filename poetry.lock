@@ -4150,4 +4150,4 @@ dev = ["ipdb", "pip-audit", "pre-commit", "pytest", "ruff"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12, <4.0"
-content-hash = "83abf740a922e45c6ba889613271c17e42c6e6758a6ccadb8666d068cfb2d103"
+content-hash = "a5ed995a744bdd088a6062c8796e826361c74523a9f18afd11d06919ad8e69aa"
