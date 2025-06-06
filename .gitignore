@@ -5,9 +5,14 @@
 .cache/
 
 # Data
-data/
-data/**/README.md
-data/**/.gitkeep
+data/**/*
+!data/**/
+!data/**/README.md
+!data/**/.gitkeep
+# !data/**/resumes-400.csv
+!data/**/resumes-400.feather
+!data/input/top_womens_names.json
+!data/input/top_mens_names.json
 
 # Secrets
 .env
@@ -18,6 +23,8 @@ notebooks/archive/
 notebooks/1 - Generate CVs.py
 notebooks/2 - Model.py
 notebooks/*.zip
+notebooks/
+notebooks/data/**/*
 
 # VisualStudioCode
 .vscode/*
