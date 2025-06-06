@@ -127,6 +127,9 @@ ignore = [
   "TRY201",
 ]
 
+[tool.ruff.per-file-ignores]
+"notebooks/1 - Generate CVs.ipynb" = ["PLE0704"]
+
 [tool.ruff.lint.pydocstyle]
 convention = "pep257"
 
