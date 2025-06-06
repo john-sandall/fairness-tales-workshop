@@ -49,7 +49,7 @@
         },
         // MD007 - Unordered list indentation
         "MD007": {
-            "start_indented": true,
+            "start_indented": false,
             "indent": 2
         },
         // MD012 - Multiple consecutive blank lines
